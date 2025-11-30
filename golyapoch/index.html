@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>بازی گل یا پوچ</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        
+        .game-container {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
+            text-align: center;
+            max-width: 600px;
+            width: 100%;
+        }
+        
+        .title {
+            color: #333;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            background: linear-gradient(45deg, #FF6B6B, #4ECDC4);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .subtitle {
+            color: #666;
+            font-size: 1.3em;
+            margin-bottom: 40px;
+        }
+        
+        .hands-container {
+            display: flex;
+            justify-content: center;
+            gap: 40px;
+            margin: 40px 0;
+        }
+        
+        .hand {
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .hand:hover {
+            transform: translateY(-10px);
+        }
+        
+        .hand img {
+            width: 180px;
+            height: 180px;
+            border-radius: 20px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+            transition: all 0.3s ease;
+        }
+        
+        .hand:hover img {
+            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.3);
+        }
+        
+        .hand-label {
+            margin-top: 15px;
+            font-size: 1.2em;
+            font-weight: bold;
+            color: #333;
+        }
+        
+        .result-container {
+            display: none;
+            margin-top: 30px;
+        }
+        
+        .result-title {
+            font-size: 2em;
+            margin-bottom: 30px;
+            padding: 15px;
+            border-radius: 15px;
+        }
+        
+        .win {
+            color: #27ae60;
+            background: rgba(39, 174, 96, 0.1);
+        }
+        
+        .lose {
+            color: #e74c3c;
+            background: rgba(231, 76, 60, 0.1);
+        }
+        
+        .result-images {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin: 30px 0;
+        }
+        
+        .result-images img {
+            width: 150px;
+            height: 150px;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+        
+        .play-again {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            font-size: 1.2em;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 20px;
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+        
+        .play-again:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.6);
+        }
+        
+        .score {
+            margin-top: 20px;
+            font-size: 1.1em;
+            color: #666;
+        }
+        
+        @media (max-width: 600px) {
+            .hands-container {
+                flex-direction: column;
+                gap: 20px;
+            }
+            
+            .hand img {
+                width: 150px;
+                height: 150px;
+            }
+            
+            .game-container {
+                padding: 20px;
+            }
+            
+            .title {
+                font-size: 2em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <h1 class="title">🎯 بازی گل یا پوچ</h1>
+        <p class="subtitle">گل در کدام دست پنهان شده است؟</p>
+        
+        <div class="hands-container" id="handsContainer">
+            <div class="hand" onclick="playGame('left')">
+                <img src="close2.png" alt="دست چپ بسته" id="leftHand">
+                <div class="hand-label">دست چپ</div>
+            </div>
+            
+            <div class="hand" onclick="playGame('right')">
+                <img src="close1.png" alt="دست راست بسته" id="rightHand">
+                <div class="hand-label">دست راست</div>
+            </div>
+        </div>
+        
+        <div class="result-container" id="resultContainer">
+            <h2 class="result-title" id="resultTitle"></h2>
+            
+            <div class="result-images" id="resultImages">
+                <!-- تصاویر نتیجه اینجا نمایش داده می‌شوند -->
+            </div>
+            
+            <button class="play-again" onclick="resetGame()">🔄 بازی مجدد</button>
+            
+            <div class="score" id="scoreDisplay">
+                امتیاز: <span id="wins">0</span> برد - <span id="losses">0</span> باخت
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let wins = 0;
+        let losses = 0;
+        
+        function playGame(selectedHand) {
+            // مخفی کردن دست‌ها
+            document.getElementById('handsContainer').style.display = 'none';
+            
+            // انتخاب تصادفی دست برنده
+            const hands = ['left', 'right'];
+            const winningHand = hands[Math.floor(Math.random() * hands.length)];
+            
+            // نمایش نتیجه
+            const resultContainer = document.getElementById('resultContainer');
+            const resultTitle = document.getElementById('resultTitle');
+            const resultImages = document.getElementById('resultImages');
+            
+            resultContainer.style.display = 'block';
+            
+            if (selectedHand === winningHand) {
+                // کاربر برنده شد
+                wins++;
+                resultTitle.textContent = '🎉 آفرین! درست حدس زدید';
+                resultTitle.className = 'result-title win';
+                
+                if (winningHand === 'left') {
+                    resultImages.innerHTML = `
+                        <img src="open2.png" alt="گل در دست چپ">
+                        <img src="right.png" alt="دست راست خالی">
+                    `;
+                } else {
+                    resultImages.innerHTML = `
+                        <img src="left.png" alt="دست چپ خالی">
+                        <img src="open1.png" alt="گل در دست راست">
+                    `;
+                }
+            } else {
+                // کاربر باخت
+                losses++;
+                resultTitle.textContent = '😞 متاسفانه اشتباه حدس زدید';
+                resultTitle.className = 'result-title lose';
+                
+                if (winningHand === 'left') {
+                    resultImages.innerHTML = `
+                        <img src="open2.png" alt="گل در دست چپ">
+                        <img src="right.png" alt="دست راست خالی">
+                    `;
+                } else {
+                    resultImages.innerHTML = `
+                        <img src="left.png" alt="دست چپ خالی">
+                        <img src="open1.png" alt="گل در دست راست">
+                    `;
+                }
+            }
+            
+            // بروزرسانی امتیاز
+            updateScore();
+        }
+        
+        function resetGame() {
+            // نمایش مجدد دست‌ها
+            document.getElementById('handsContainer').style.display = 'flex';
+            document.getElementById('resultContainer').style.display = 'none';
+        }
+        
+        function updateScore() {
+            document.getElementById('wins').textContent = wins;
+            document.getElementById('losses').textContent = losses;
+        }
+        
+        // ایجاد افکت برای دست‌ها
+        const hands = document.querySelectorAll('.hand');
+        hands.forEach(hand => {
+            hand.addEventListener('mouseenter', function() {
+                this.style.transform = 'translateY(-10px) scale(1.05)';
+            });
+            
+            hand.addEventListener('mouseleave', function() {
+                this.style.transform = 'translateY(0) scale(1)';
+            });
+        });
+    </script>
+</body>
+</html>
